@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:component-scan base-package="tuanbtd.com"></context:component-scan>
+	
+	<bean class = "org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<property name="prefix" value="/WEB-INF/views/" />
+	<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!-- Allow CSS, JS file -->
+	<mvc:resources location="/resources/" mapping="/resources/**" />
+	
+	<!-- Application Properties Configuration -->
+    <context:property-placeholder location="classpath:application.properties" />
+	
+	<!-- Allow for dispatching requests to Controllers -->
+    <mvc:annotation-driven />
+    
+    <!-- 2. SPRING DATA CONFIGURATION -->
+    <!-- JPA Configuration -->
+    <jpa:repositories base-package="tuanbtd.com.repository"></jpa:repositories>
+
+    <!-- 2.1. Configuration the JDBC connection -->
+    <bean name="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <!-- For SQL Server -->
+        <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+        <!-- For MySQL -->
+<!--         <property name="driverClassName" value="com.mysql.jdbc.Driver" /> -->
+        <property name="url" value="${dataSource.url}" />
+        <property name="username" value="${dataSource.username}" />
+        <property name="password" value="${dataSource.password}" />
+    </bean>
+
+    <!-- 2.2. Session Factory Configuration -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="packagesToScan" value="tuanbtd.com.entity"></property>
+        <property name="hibernateProperties">
+            <props>
+                 <!-- For SQL Server -->
+                <prop key="hibernate.dialect">org.hibernate.dialect.SQLServer2012Dialect</prop>
+                <!-- For MySQL -->
+<!--                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop> -->
+                <prop key="hibernate.current_session_context_class">thread</prop>
+                <prop key="hibernate.transaction.factory_class">org.hibernate.transaction.JDBCTransactionFactory</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.connection.CharSet">utf8</prop>
+                <prop key="hibernate.connection.characterEncoding">utf8</prop>
+                <prop key="hibernate.connection.useUnicode">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- 2.3. Container Entity Manager Factory Configuration -->
+    <bean name="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="packagesToScan" value="tuanbtd.com.entity"></property>
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+        </property>
+    </bean>
+
+    <!-- 2.4. Transaction Manager Configuration -->
+    <bean name="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"></property>
+    </bean>
+
+    <!-- Enable Annotation Driven Transaction Management -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!-- Persistence Exception -->
+    <bean id="persistenceExceptionTranslationPostProcessor" class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+	
+	<!-- Upload file Configuration -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="10000000" />
+    </bean>
+    
+    
+    <!-- Messages Configuration -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+            <value>classpath:messages</value>
+        </property>
+        <property name="defaultEncoding" value="UTF-8" />
+    </bean>
+    
+    <!-- Create bean ThanhVienValidator  -->
+    <bean name="thanhVienValidator" class="tuanbtd.com.validator.ThanhVienValidator" />
+    
+    
+<!--     Security configuration -->
+    <security:authentication-manager>
+        <security:authentication-provider ref="authentication" />
+    </security:authentication-manager>
+    
+    <security:http auto-config="true">
+        <security:form-login 
+            login-page="/login"
+            username-parameter="username"
+            password-parameter="password"
+            authentication-failure-url="/login?isError=true"
+            login-processing-url="/j_spring_security_check"
+            authentication-success-handler-ref="myAuthenticationSuccessHandler"
+        />
+        
+        <security:logout delete-cookies="JSESSIONID" logout-success-url="/home" />
+        
+        <security:csrf disabled="true" />
+        
+        <security:intercept-url pattern="/user/*"  access="hasRole('ROLE_USER')" />
+        <security:intercept-url pattern="/admin/*"  access="hasRole('ROLE_ADMIN')" />
+    </security:http>
+    
+    <bean id="authentication" class="tuanbtd.com.security.CustomAuthenticationProvider"/>
+    
+    <bean id="myAuthenticationSuccessHandler" class="tuanbtd.com.security.UrlAuthenticationSuccessHandler" />
+</beans>
