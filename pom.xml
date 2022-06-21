@@ -15,7 +15,7 @@
 		<spring-security-version>4.2.3.RELEASE</spring-security-version>
 		<hibernate-version>5.2.2.Final</hibernate-version>
 		<jstl-version>1.2</jstl-version>
-		<mysql-version>8.0.18</mysql-version>
+		<mysql-version>8.0.28</mysql-version>
 		<sqlserver-version>4.0</sqlserver-version>
 		<json-version>20160810</json-version>
 	</properties>
