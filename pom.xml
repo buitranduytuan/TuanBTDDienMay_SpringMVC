@@ -13,7 +13,7 @@
 		<spring-version>4.3.11.RELEASE</spring-version>
 		<spring-data-version>1.11.9.RELEASE</spring-data-version>
 		<spring-security-version>4.2.3.RELEASE</spring-security-version>
-		<hibernate-version>5.2.2.Final</hibernate-version>
+		<hibernate-version>5.3.20.Final</hibernate-version>
 		<jstl-version>1.2</jstl-version>
 		<mysql-version>8.0.18</mysql-version>
 		<sqlserver-version>4.0</sqlserver-version>
